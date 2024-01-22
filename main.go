@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/iamyxsh/go-realtime-db/router"
 	"github.com/joho/godotenv"
 )
 
@@ -11,9 +12,8 @@ func main() {
 	app := fiber.New()
 	api := app.Group("/api")
 
-	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.SendString("pong!")
-	})
+	router.HealthRouter(&api)
+	router.LoginRouter(&api)
 
 	app.Listen(":8080")
 }
