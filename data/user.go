@@ -5,6 +5,7 @@ type User struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"-"`
+	APIKey   string `json:"apiKey"`
 }
 
 func NewUser(name, email, password string) *User {
@@ -13,6 +14,7 @@ func NewUser(name, email, password string) *User {
 		name,
 		email,
 		password,
+		"",
 	}
 }
 

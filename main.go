@@ -12,6 +12,7 @@ func main() {
 
 	router.HealthRouter(&api)
 	router.LoginRouter(&api)
+	router.ApiKeyRouter(&api)
 
 	app.Listen(":8080")
 }
