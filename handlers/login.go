@@ -8,19 +8,19 @@ import (
 	"github.com/iamyxsh/go-realtime-db/utils"
 )
 
-type SignupReq struct {
+type signupReq struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 }
 
-type SigninReq struct {
+type signinReq struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 }
 
 func HandleSignup(c *fiber.Ctx) error {
-	userBody := NewSignupReq()
+	userBody := newSignupReq()
 	err := c.BodyParser(userBody)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusBadRequest, err)
@@ -51,7 +51,7 @@ func HandleSignup(c *fiber.Ctx) error {
 }
 
 func HandleSignin(c *fiber.Ctx) error {
-	userBody := NewSigninReq()
+	userBody := newSigninReq()
 	err := c.BodyParser(userBody)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusBadRequest, err)
@@ -81,18 +81,18 @@ func HandleSignin(c *fiber.Ctx) error {
 	return utils.CreateResponse(c, fiber.StatusOK, token)
 }
 
-func NewSignupReq() *SignupReq {
-	return new(SignupReq)
+func newSignupReq() *signupReq {
+	return new(signupReq)
 }
 
-func NewSigninReq() *SigninReq {
-	return new(SigninReq)
+func newSigninReq() *signinReq {
+	return new(signinReq)
 }
 
-func (b *SignupReq) Validate() error {
+func (b *signupReq) Validate() error {
 	return utils.ValidateStruct(b)
 }
 
-func (b *SigninReq) Validate() error {
+func (b *signinReq) Validate() error {
 	return utils.ValidateStruct(b)
 }
