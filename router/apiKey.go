@@ -8,6 +8,6 @@ import (
 
 func ApiKeyRouter(r *fiber.Router) {
 	router := *r
-	router.Post("/key", middlewares.AuthMiddleware, middlewares.UserMiddleware, handlers.HandlePostKey)
-	router.Get("/key", middlewares.AuthMiddleware, middlewares.UserMiddleware, handlers.HandleGetKey)
+	router.Post("/key", middlewares.AuthMiddleware, middlewares.UserMiddleware, middlewares.CheckNoApiKeyMiddleware, handlers.HandlePostKey)
+	router.Get("/key", middlewares.AuthMiddleware, middlewares.UserMiddleware, middlewares.CheckApiKeyMiddleware, handlers.HandleGetKey)
 }

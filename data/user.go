@@ -29,3 +29,15 @@ func (u *User) GetUserByEmail() error {
 
 	return err
 }
+
+func (u *User) GetUserByApiKey() error {
+	err := DB.Get(u, "SELECT * FROM users WHERE apikey = $1", u.APIKey)
+
+	return err
+}
+
+func (u *User) SaveUser() error {
+	_, err := DB.Exec("UPDATE users SET name = $1, email = $2, apikey = $3 WHERE id = $4", u.Name, u.Email, u.APIKey, u.Id)
+
+	return err
+}

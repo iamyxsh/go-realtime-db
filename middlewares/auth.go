@@ -3,7 +3,6 @@ package middlewares
 import (
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/iamyxsh/go-realtime-db/utils"
@@ -24,12 +23,12 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	claims, err := utils.VerifyToken(tokenString)
 
 	if err != nil || claims.Valid() != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString("Invalid or expired token")
+		return utils.CreateError(c, fiber.StatusUnauthorized, errors.New("invalid or expired token"))
 	}
 
-	if time.Now().After(time.Unix(claims.ExpiresAt, 0)) {
-		return c.Status(fiber.StatusUnauthorized).SendString("Token has expired")
-	}
+	// if time.Now().After(time.Unix(claims.ExpiresAt, 0)) {
+	// 	return utils.CreateError(c, fiber.StatusUnauthorized, errors.New("token has expired"))
+	// }
 
 	c.Locals("email", claims.Email)
 

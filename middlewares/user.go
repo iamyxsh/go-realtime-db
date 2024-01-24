@@ -15,7 +15,7 @@ func UserMiddleware(c *fiber.Ctx) error {
 		return utils.CreateError(c, fiber.StatusUnauthorized, err)
 	}
 
-	c.Locals("user", &user)
+	c.Locals("user", user)
 
 	return c.Next()
 }
