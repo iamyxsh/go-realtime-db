@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/iamyxsh/go-realtime-db/constants"
+	"github.com/iamyxsh/go-realtime-db/utils"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -17,6 +18,14 @@ func init() {
 		log.Fatalln(err)
 	}
 	db.MustExec(constants.UserSchema)
+	db.MustExec(constants.ProjectSchema)
 
 	DB = db
+}
+
+func CreateDatabase(dbName string) string {
+	createDBStatement, randString := utils.ReturnCreateDBStatement(dbName)
+	fmt.Println(createDBStatement)
+	DB.MustExec(createDBStatement)
+	return randString
 }
