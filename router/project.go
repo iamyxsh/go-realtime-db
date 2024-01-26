@@ -9,5 +9,6 @@ import (
 func ProjectRouter(r *fiber.Router) {
 	router := *r
 	router.Post("/project", middlewares.AuthMiddleware, middlewares.UserMiddleware, handlers.HandlePostProject)
-	router.Get("/project", middlewares.AuthMiddleware, middlewares.UserMiddleware, handlers.HandleGetProject)
+	router.Get("/project", middlewares.AuthMiddleware, middlewares.UserMiddleware, middlewares.ProjectMiddleware, handlers.HandleGetProject)
+	router.Get("/project/table/:name/:id", middlewares.AuthMiddleware, middlewares.UserMiddleware, middlewares.ProjectMiddleware, handlers.HandleGetTable)
 }

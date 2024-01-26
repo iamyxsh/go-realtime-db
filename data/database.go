@@ -23,9 +23,22 @@ func init() {
 	DB = db
 }
 
+func ReturnDB(dbName string) (*sqlx.DB, error) {
+	db, err := sqlx.Connect("postgres", fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable", constants.PG_USER, constants.PG_PASSWORD, dbName))
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func CreateDatabase(dbName string) string {
 	createDBStatement, randString := utils.ReturnCreateDBStatement(dbName)
-	fmt.Println(createDBStatement)
 	DB.MustExec(createDBStatement)
 	return randString
+}
+
+func CreateTable(tableName string, jsonFields map[string]string, db *sqlx.DB) {
+	createTableStatement := utils.ReturnCreateTableStatement(tableName, jsonFields)
+	db.MustExec(createTableStatement)
 }
