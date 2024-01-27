@@ -44,7 +44,7 @@ func ReturnInsertStatement(tableName string, jsonFields map[string]any) (string,
 	columnsString := strings.Join(columns, ", ")
 	placeholdersString := strings.Join(placeholders, ", ")
 
-	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tableName, columnsString, placeholdersString)
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING *;", tableName, columnsString, placeholdersString)
 
 	return query, values
 }

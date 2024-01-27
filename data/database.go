@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -43,15 +44,42 @@ func CreateTable(tableName string, jsonFields map[string]string, db *sqlx.DB) {
 	db.MustExec(createTableStatement)
 }
 
-func InsertTable(tableName string, jsonFields map[string]any, db *sqlx.DB) error {
-	query, values := utils.ReturnInsertStatement(tableName, jsonFields)
+func InsertTable(tableName string, jsonFields map[string]any, db *sqlx.DB) (map[string]interface{}, error) {
+	query, val := utils.ReturnInsertStatement(tableName, jsonFields)
 
-	_, err := db.NamedExec(query, values)
+	resultMap := make(map[string]interface{})
+
+	rows, err := db.NamedQuery(query, val)
 	if err != nil {
-		return err
+		return map[string]any{}, err
+	}
+	defer rows.Close()
+
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Fatal(err)
+	}
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		var value sql.RawBytes
+		values[i] = &value
+	}
+	for rows.Next() {
+		err := rows.Scan(values...)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i, colName := range columns {
+			resultMap[colName] = string(*(values[i].(*sql.RawBytes)))
+		}
 	}
 
-	return nil
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return resultMap, nil
 }
 
 func DeleteTableRow(tableName string, id string, db *sqlx.DB) {

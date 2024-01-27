@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,6 +22,20 @@ type TableData struct {
 
 type createPostTableReq struct {
 	Data map[string]any `json:"data" validate:"required"`
+}
+
+type InsertTableMsg struct {
+	DBName    string         `json:"dbName"`
+	TableName string         `json:"tableName"`
+	OpType    string         `json:"opType"`
+	Fields    map[string]any `json:"fields"`
+}
+
+type DeleteTableMsg struct {
+	DBName    string `json:"dbName"`
+	TableName string `json:"tableName"`
+	OpType    string `json:"opType"`
+	Id        string `json:"id"`
 }
 
 func HandlePostProject(c *fiber.Ctx) error {
@@ -81,7 +94,26 @@ func HandlePostTable(c *fiber.Ctx) error {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
 
-	data.InsertTable(param["name"], body.Data, db)
+	result, err := data.InsertTable(param["name"], body.Data, db)
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusInternalServerError, err)
+	}
+
+	if innerMap, outerKeyExists := WSConnections[project.DBName]; outerKeyExists {
+		if conn, innerKeyExists := innerMap[param["name"]]; innerKeyExists {
+
+			jsonBytes, err := json.Marshal(InsertTableMsg{
+				DBName:    project.DBName,
+				TableName: param["name"],
+				OpType:    "INSERT",
+				Fields:    result,
+			})
+			if err != nil {
+				return utils.CreateError(c, fiber.StatusInternalServerError, err)
+			}
+			conn.WriteMessage(1, jsonBytes)
+		}
+	}
 
 	return utils.CreateResponse(c, fiber.StatusCreated, "success")
 }
@@ -96,6 +128,22 @@ func HandleDeleteTable(c *fiber.Ctx) error {
 	}
 
 	data.DeleteTableRow(param["name"], param["id"], db)
+
+	if innerMap, outerKeyExists := WSConnections[project.DBName]; outerKeyExists {
+		if conn, innerKeyExists := innerMap[param["name"]]; innerKeyExists {
+
+			jsonBytes, err := json.Marshal(DeleteTableMsg{
+				DBName:    project.DBName,
+				TableName: param["name"],
+				OpType:    "DELETE",
+				Id:        param["id"],
+			})
+			if err != nil {
+				return utils.CreateError(c, fiber.StatusInternalServerError, err)
+			}
+			conn.WriteMessage(1, jsonBytes)
+		}
+	}
 
 	return utils.CreateResponse(c, fiber.StatusCreated, "success")
 }
@@ -136,14 +184,11 @@ func HandleGetTable(c *fiber.Ctx) error {
 		for i, colName := range columns {
 			resultMap[colName] = string(*(values[i].(*sql.RawBytes)))
 		}
-
 	}
 
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("resultMap", resultMap)
 
 	return utils.CreateResponse(c, fiber.StatusCreated, resultMap)
 }
