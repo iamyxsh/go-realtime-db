@@ -53,6 +53,10 @@ func ReturnSelectStatement(table, id string) string {
 	return fmt.Sprintf("SELECT * FROM %s WHERE id = %s", table, id)
 }
 
+func ReturnSelectAllStatement(table string) string {
+	return fmt.Sprintf("SELECT * FROM %s", table)
+}
+
 func ReturnDeleteStatement(tableName string, id string) (string, string) {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", tableName)
 	values := id

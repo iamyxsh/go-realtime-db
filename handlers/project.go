@@ -3,8 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/iamyxsh/go-realtime-db/data"
@@ -119,7 +117,9 @@ func HandleGetTable(c *fiber.Ctx) error {
 
 	columns, err := rows.Columns()
 	if err != nil {
-		log.Fatal(err)
+		if err != nil {
+			return utils.CreateError(c, fiber.StatusInternalServerError, err)
+		}
 	}
 
 	values := make([]interface{}, len(columns))
@@ -130,7 +130,9 @@ func HandleGetTable(c *fiber.Ctx) error {
 	for rows.Next() {
 		err := rows.Scan(values...)
 		if err != nil {
-			log.Fatal(err)
+			if err != nil {
+				return utils.CreateError(c, fiber.StatusInternalServerError, err)
+			}
 		}
 
 		for i, colName := range columns {
@@ -140,12 +142,65 @@ func HandleGetTable(c *fiber.Ctx) error {
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+		if err != nil {
+			return utils.CreateError(c, fiber.StatusInternalServerError, err)
+		}
 	}
 
-	fmt.Println("resultMap", resultMap)
-
 	return utils.CreateResponse(c, fiber.StatusCreated, resultMap)
+}
+
+func HandleGetAllTableRows(c *fiber.Ctx) error {
+	project := *c.Locals("project").(*data.Project)
+	param := c.AllParams()
+
+	db, err := data.ReturnDB(project.DBName)
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusInternalServerError, err)
+	}
+
+	rows, err := db.Query(utils.ReturnSelectAllStatement(param["name"]))
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusInternalServerError, err)
+	}
+	defer rows.Close()
+
+	columns, err := rows.Columns()
+	if err != nil {
+		if err != nil {
+			return utils.CreateError(c, fiber.StatusInternalServerError, err)
+		}
+	}
+
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		var value sql.RawBytes
+		values[i] = &value
+	}
+
+	var resultArray []map[string]interface{}
+
+	for rows.Next() {
+		resultMap := make(map[string]interface{})
+
+		values := make([]interface{}, len(columns))
+		for i := range values {
+			var value sql.RawBytes
+			values[i] = &value
+		}
+
+		if err := rows.Scan(values...); err != nil {
+			if err != nil {
+				return utils.CreateError(c, fiber.StatusInternalServerError, err)
+			}
+		}
+		for i, colName := range columns {
+			resultMap[colName] = string(*(values[i].(*sql.RawBytes)))
+		}
+
+		resultArray = append(resultArray, resultMap)
+	}
+	return utils.CreateResponse(c, fiber.StatusCreated, resultArray)
 }
 
 func newCreateProjectReq() *createProjectReq {
