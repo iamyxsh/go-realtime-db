@@ -42,3 +42,19 @@ func CreateTable(tableName string, jsonFields map[string]string, db *sqlx.DB) {
 	createTableStatement := utils.ReturnCreateTableStatement(tableName, jsonFields)
 	db.MustExec(createTableStatement)
 }
+
+func InsertTable(tableName string, jsonFields map[string]any, db *sqlx.DB) error {
+	query, values := utils.ReturnInsertStatement(tableName, jsonFields)
+
+	_, err := db.NamedExec(query, values)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteTableRow(tableName string, id string, db *sqlx.DB) {
+	query, values := utils.ReturnDeleteStatement(tableName, id)
+	db.MustExec(query, values)
+}

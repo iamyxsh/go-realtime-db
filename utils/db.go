@@ -28,11 +28,35 @@ func ReturnCreateTableStatement(tableName string, jsonFields map[string]string) 
 	}
 
 	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s);", tableName, strings.Join(columns, ", "))
+}
 
+func ReturnInsertStatement(tableName string, jsonFields map[string]any) (string, map[string]interface{}) {
+	var columns []string
+	var placeholders []string
+	values := make(map[string]interface{})
+
+	for key, value := range jsonFields {
+		columns = append(columns, key)
+		placeholders = append(placeholders, fmt.Sprintf(":%s", key))
+		values[key] = value
+	}
+
+	columnsString := strings.Join(columns, ", ")
+	placeholdersString := strings.Join(placeholders, ", ")
+
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tableName, columnsString, placeholdersString)
+
+	return query, values
 }
 
 func ReturnSelectStatement(table, id string) string {
 	return fmt.Sprintf("SELECT * FROM %s WHERE id = %s", table, id)
+}
+
+func ReturnDeleteStatement(tableName string, id string) (string, string) {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1", tableName)
+	values := id
+	return query, values
 }
 
 func generateRandomString(input string) string {

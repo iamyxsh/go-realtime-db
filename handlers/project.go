@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/iamyxsh/go-realtime-db/data"
@@ -16,6 +19,10 @@ type createProjectReq struct {
 type TableData struct {
 	Name   string            `json:"name" validate:"required"`
 	Fields map[string]string `json:"fields" validate:"required"`
+}
+
+type createPostTableReq struct {
+	Data map[string]any `json:"data" validate:"required"`
 }
 
 func HandlePostProject(c *fiber.Ctx) error {
@@ -60,84 +67,85 @@ func HandleGetProject(c *fiber.Ctx) error {
 }
 
 func HandlePostTable(c *fiber.Ctx) error {
-	user := *c.Locals("user").(*data.User)
-
-	project := data.NewProject("", user.Id, "")
-	err := project.GetProjectByUserId()
-	if err != nil {
-		return utils.CreateError(c, fiber.StatusInternalServerError, err)
-	}
-
-	return utils.CreateResponse(c, fiber.StatusCreated, project)
-}
-
-func HandleGetTable(c *fiber.Ctx) error {
 	project := *c.Locals("project").(*data.Project)
 	param := c.AllParams()
 
-	// var tableData []TableData
-	// var table map[string]any
-
-	// err := json.Unmarshal([]byte(project.JsonFields), &tableData)
-	// if err != nil {
-	// 	return utils.CreateError(c, fiber.StatusInternalServerError, err)
-	// }
-
-	// for _, tab := range tableData {
-	// 	if tab.Name == param["name"] {
-	// 		jsonBytes, err := json.Marshal(tab)
-	// 		if err != nil {
-	// 			return utils.CreateError(c, fiber.StatusInternalServerError, err)
-	// 		}
-	// 		err = json.Unmarshal([]byte(jsonBytes), &tab)
-	// 		if err != nil {
-	// 			return utils.CreateError(c, fiber.StatusInternalServerError, err)
-	// 		}
-	// 		break
-	// 	}
-	// }
+	body := newCreatePostTableReq()
+	err := c.BodyParser(body)
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusBadRequest, err)
+	}
 
 	db, err := data.ReturnDB(project.DBName)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
 
-	var table []map[string]any
+	data.InsertTable(param["name"], body.Data, db)
 
-	err = db.Select(&table, utils.ReturnSelectStatement(param["name"], param["id"]))
+	return utils.CreateResponse(c, fiber.StatusCreated, "success")
+}
+
+func HandleDeleteTable(c *fiber.Ctx) error {
+	project := *c.Locals("project").(*data.Project)
+	param := c.AllParams()
+
+	db, err := data.ReturnDB(project.DBName)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
 
-	var result []TableData
-	err = json.Unmarshal([]byte(project.JsonFields), &result)
+	data.DeleteTableRow(param["name"], param["id"], db)
+
+	return utils.CreateResponse(c, fiber.StatusCreated, "success")
+}
+
+func HandleGetTable(c *fiber.Ctx) error {
+	project := *c.Locals("project").(*data.Project)
+	param := c.AllParams()
+
+	db, err := data.ReturnDB(project.DBName)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
 
-	for _, tab := range result {
-		if tab.Name == param["name"] {
-			jsonBytes, err := json.Marshal(tab)
-			if err != nil {
-				return utils.CreateError(c, fiber.StatusInternalServerError, err)
-			}
-			err = json.Unmarshal([]byte(jsonBytes), &tab)
-			if err != nil {
-				return utils.CreateError(c, fiber.StatusInternalServerError, err)
-			}
-			jsonByte, err := json.Marshal(tab.Fields)
-			if err != nil {
-				return utils.CreateError(c, fiber.StatusInternalServerError, err)
-			}
-			err = json.Unmarshal([]byte(jsonByte), &table)
-			if err != nil {
-				return utils.CreateError(c, fiber.StatusInternalServerError, err)
-			}
-			break
+	rows, err := db.Query(utils.ReturnSelectStatement(param["name"], param["id"]))
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusInternalServerError, err)
+	}
+	defer rows.Close()
+
+	resultMap := make(map[string]interface{})
+
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		var value sql.RawBytes
+		values[i] = &value
+	}
+	for rows.Next() {
+		err := rows.Scan(values...)
+		if err != nil {
+			log.Fatal(err)
 		}
+
+		for i, colName := range columns {
+			resultMap[colName] = string(*(values[i].(*sql.RawBytes)))
+		}
+
 	}
 
-	return utils.CreateResponse(c, fiber.StatusCreated, table)
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("resultMap", resultMap)
+
+	return utils.CreateResponse(c, fiber.StatusCreated, resultMap)
 }
 
 func newCreateProjectReq() *createProjectReq {
@@ -145,5 +153,13 @@ func newCreateProjectReq() *createProjectReq {
 }
 
 func (b *createProjectReq) Validate() error {
+	return utils.ValidateStruct(b)
+}
+
+func newCreatePostTableReq() *createPostTableReq {
+	return new(createPostTableReq)
+}
+
+func (b *createPostTableReq) Validate() error {
 	return utils.ValidateStruct(b)
 }
