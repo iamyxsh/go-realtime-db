@@ -10,7 +10,7 @@ func UserMiddleware(c *fiber.Ctx) error {
 	email := c.Locals("email").(string)
 
 	user := data.NewUser("", email, "")
-	err := user.GetUserByEmail()
+	err := user.GetUserByEmail(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusUnauthorized, err)
 	}

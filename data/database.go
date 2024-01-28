@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/iamyxsh/go-realtime-db/constants"
 	"github.com/iamyxsh/go-realtime-db/utils"
 	"github.com/jmoiron/sqlx"
@@ -12,6 +14,7 @@ import (
 )
 
 var DB *sqlx.DB
+var RedisClient *redis.Client
 
 func init() {
 	db, err := sqlx.Connect("postgres", fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable", constants.PG_USER, constants.PG_PASSWORD, "postgres"))
@@ -21,7 +24,14 @@ func init() {
 	db.MustExec(constants.UserSchema)
 	db.MustExec(constants.ProjectSchema)
 
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
 	DB = db
+	RedisClient = client
 }
 
 func ReturnDB(dbName string) (*sqlx.DB, error) {
@@ -85,4 +95,12 @@ func InsertTable(tableName string, jsonFields map[string]any, db *sqlx.DB) (map[
 func DeleteTableRow(tableName string, id string, db *sqlx.DB) {
 	query, values := utils.ReturnDeleteStatement(tableName, id)
 	db.MustExec(query, values)
+}
+
+func SetRedisEntry(key string, data []byte) error {
+	return RedisClient.Set(key, data, 12*time.Hour).Err()
+}
+
+func GetRedisEntry(key string) (string, error) {
+	return RedisClient.Get(key).Result()
 }

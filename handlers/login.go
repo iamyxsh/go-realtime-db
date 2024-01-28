@@ -37,7 +37,7 @@ func HandleSignup(c *fiber.Ctx) error {
 	}
 
 	user := data.NewUser(userBody.Name, userBody.Email, hashedPassword)
-	err = user.CreateUser()
+	err = user.CreateUser(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
@@ -63,7 +63,7 @@ func HandleSignin(c *fiber.Ctx) error {
 	}
 
 	user := data.NewUser("", userBody.Email, "")
-	err = user.GetUserByEmail()
+	err = user.GetUserByEmail(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}

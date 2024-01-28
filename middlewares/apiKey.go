@@ -16,7 +16,7 @@ func ApiKeyMiddleware(c *fiber.Ctx) error {
 
 	user := data.NewUser("", "", "")
 	user.APIKey = apiKeyHeader
-	err := user.GetUserByApiKey()
+	err := user.GetUserByApiKey(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
@@ -25,7 +25,14 @@ func ApiKeyMiddleware(c *fiber.Ctx) error {
 		return utils.CreateError(c, fiber.StatusUnauthorized, errors.New("api key invalid"))
 	}
 
+	project := data.NewProject("", user.Id, "")
+	err = project.GetProjectByUserId()
+	if err != nil {
+		return utils.CreateError(c, fiber.StatusInternalServerError, err)
+	}
+
 	c.Locals("user", user)
+	c.Locals("project", project)
 
 	return c.Next()
 }
@@ -34,7 +41,7 @@ func CheckNoApiKeyMiddleware(c *fiber.Ctx) error {
 	email := c.Locals("email").(string)
 
 	user := data.NewUser("", email, "")
-	err := user.GetUserByEmail()
+	err := user.GetUserByEmail(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusUnauthorized, err)
 	}
@@ -50,7 +57,7 @@ func CheckApiKeyMiddleware(c *fiber.Ctx) error {
 	email := c.Locals("email").(string)
 
 	user := data.NewUser("", email, "")
-	err := user.GetUserByEmail()
+	err := user.GetUserByEmail(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusUnauthorized, err)
 	}

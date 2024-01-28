@@ -16,6 +16,7 @@ func main() {
 	router.LoginRouter(&api)
 	router.ApiKeyRouter(&api)
 	router.ProjectRouter(&api)
+	router.AuthRouter(&api)
 
 	app.Listen(":8080")
 }

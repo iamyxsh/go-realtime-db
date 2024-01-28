@@ -9,7 +9,7 @@ import (
 func HandlePostKey(c *fiber.Ctx) error {
 	user := *c.Locals("user").(*data.User)
 	user.APIKey = utils.GenerateApiKey()
-	err := user.SaveUser()
+	err := user.SaveUser(data.DB)
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/iamyxsh/go-realtime-db/constants"
 	"github.com/iamyxsh/go-realtime-db/data"
 	"github.com/iamyxsh/go-realtime-db/utils"
 )
@@ -57,6 +58,7 @@ func HandlePostProject(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.CreateError(c, fiber.StatusInternalServerError, err)
 	}
+	db.MustExec(constants.AuthUserSchema)
 
 	for _, table := range body.JsonFields {
 		go data.CreateTable(table.Name, table.Fields, db)
