@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { logo } from '../../assets'
+import { Button } from '../atoms'
 
 const navbarOptions = [
   {
@@ -32,7 +33,7 @@ const Navbar = () => {
                 </Link>
               )
             } else {
-              return <button className="text-[1rem]">{item.name}</button>
+              return <Button>{item.name}</Button>
             }
           })}
         </div>
