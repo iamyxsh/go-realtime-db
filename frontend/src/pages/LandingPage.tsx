@@ -1,21 +1,8 @@
-import { authentication, database } from '../assets'
 import { Page } from '../components'
-import { FeatureCard } from '../components/molecules/FeatureCard'
+import { ExampleCard, FeatureCard } from '../components/molecules'
+import { features, startBuilding } from '../constants'
 
-export const feature = [
-  {
-    name: 'Database',
-    img: database,
-    points: ['Realtime', 'SQL', 'Easy-to-use API'],
-  },
-  {
-    name: 'Authentication',
-    img: authentication,
-    points: ['Realtime', 'SQL', 'Easy-to-use API'],
-  },
-]
-
-const LandingPage = () => {
+export const LandingPage = () => {
   return (
     <Page>
       <div className="flex flex-col w-screen">
@@ -25,14 +12,28 @@ const LandingPage = () => {
             Use our service to build your app in a weekend.
           </h1>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col mt-[5rem]">
           <div className="flex gap-10 justify-center items-center p-10">
-            {feature.map((feat) => (
+            {features.map((feat) => (
               <FeatureCard
                 img={feat.img}
                 name={feat.name}
-                points={feat.points}
+                points={feat.points as [string]}
                 key={feat.name}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-start mt-[5rem] bg-bg1 p-[5rem]">
+          <h1 className="text-5xl text-accent">Start Building</h1>
+          <div className="flex gap-10 justify-center items-center p-10">
+            {startBuilding.map((eg) => (
+              <ExampleCard
+                gh={eg.gh}
+                name={eg.name}
+                link={eg.link}
+                description={eg.description}
+                key={eg.name}
               />
             ))}
           </div>
@@ -41,5 +42,3 @@ const LandingPage = () => {
     </Page>
   )
 }
-
-export default LandingPage

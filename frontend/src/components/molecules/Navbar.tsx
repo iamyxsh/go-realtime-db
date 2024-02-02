@@ -1,20 +1,7 @@
 import { Link } from 'react-router-dom'
 import { logo } from '../../assets'
 import { Button } from '../atoms'
-
-const navbarOptions = [
-  {
-    name: 'Features',
-    link: '/#features',
-  },
-  {
-    name: 'Documentation',
-    link: '/docs',
-  },
-  {
-    name: 'Signup',
-  },
-]
+import { navbarOptions } from '../../constants'
 
 const Navbar = () => {
   return (
@@ -25,15 +12,15 @@ const Navbar = () => {
           tokyo
         </div>
         <div className="flex gap-5 items-center">
-          {navbarOptions.map((item) => {
-            if (item.link) {
+          {navbarOptions.map((item, id) => {
+            if (id != 2) {
               return (
                 <Link to={item.link} className="text-[1rem]">
                   {item.name}
                 </Link>
               )
             } else {
-              return <Button>{item.name}</Button>
+              return <Button to={item.link}>{item.name}</Button>
             }
           })}
         </div>
