@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"github.com/iamyxsh/go-realtime-db/router"
 )
@@ -9,6 +10,13 @@ import (
 func main() {
 
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		ExposeHeaders:    "Content-Length",
+		AllowCredentials: true,
+	}))
 	api := app.Group("/api")
 
 	router.WsRouter(app)

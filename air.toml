@@ -1,0 +1,9 @@
+# air.toml
+
+root = "."  # Set your project root directory
+
+[exclude]
+  paths = [
+    "frontend",
+  ]
+
